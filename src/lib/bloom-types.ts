@@ -1,0 +1,20 @@
+import { z } from "zod";
+
+export const entrySchema = z.object({ id: z.string(), date: z.string().datetime(), title: z.string(), html: z.string(), mood: z.string(), tags: z.string(), favorite: z.boolean() });
+export const itemSchema = z.object({ id: z.string(), type: z.enum(["image", "text"]), content: z.string(), x: z.number().min(0).max(100), y: z.number().min(0).max(100), width: z.number().positive().max(100), height: z.number().positive().max(100), crop: z.number().min(0).max(100) }).refine(item => item.type !== "image" || /^data:image\/(jpeg|png|webp);base64,/.test(item.content) || ["/assets/dream-garden.png", "/assets/music-dream.png"].includes(item.content), "Only embedded photos and Bloom starter images are allowed.");
+export const boardSchema = z.object({ id: z.string(), name: z.string(), layout: z.string(), items: z.array(itemSchema) });
+export const goalSchema = z.object({ id: z.string(), title: z.string(), kind: z.enum(["Habit", "Task", "Goal", "Challenge"]), date: z.string(), end: z.string(), daily: z.boolean(), done: z.array(z.string()) });
+export const reminderSchema = z.object({ id: z.string(), text: z.string(), time: z.string(), frequency: z.enum(["Daily", "Weekdays", "Weekly"]), enabled: z.boolean() });
+export const dataSchema = z.object({ version: z.literal(1), entries: z.array(entrySchema), boards: z.array(boardSchema), goals: z.array(goalSchema), reminders: z.array(reminderSchema), quietStart: z.string(), quietEnd: z.string() });
+export type Entry = z.infer<typeof entrySchema>;
+export type BoardItem = z.infer<typeof itemSchema>;
+export type Board = z.infer<typeof boardSchema>;
+export type Goal = z.infer<typeof goalSchema>;
+export type Reminder = z.infer<typeof reminderSchema>;
+export type BloomData = z.infer<typeof dataSchema>;
+export const dayKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+export const id = () => crypto.randomUUID();
+export const initialData = (): BloomData => ({ version: 1, entries: [], boards: [{ id: id(), name: "Dream Life", layout: "Dreamy Collage", items: [{ id: id(), type: "image", content: "/assets/dream-garden.png", x: 5, y: 5, width: 58, height: 67, crop: 50 }, { id: id(), type: "text", content: "Bigger dreams.\nSame girl.", x: 48, y: 62, width: 46, height: 30, crop: 50 }] }, { id: id(), name: "Music & Me", layout: "Polaroid", items: [{ id: id(), type: "image", content: "/assets/music-dream.png", x: 8, y: 5, width: 84, height: 65, crop: 50 }, { id: id(), type: "text", content: "My voice deserves\nto be heard.", x: 8, y: 74, width: 84, height: 20, crop: 50 }] }], goals: ["Make a little music", "Move my body", "A moment to journal"].map(title => ({ id: id(), title, kind: "Habit", date: dayKey(), end: "", daily: true, done: [] })), reminders: [{ id: id(), text: "Remember how talented you are.", time: "10:00", frequency: "Daily", enabled: true }], quietStart: "21:00", quietEnd: "08:00" });
+export const isDue = (goal: Goal, date: string) => goal.daily ? date >= goal.date && (!goal.end || date <= goal.end) : goal.date === date;
+export const affirmations = ["You are becoming everything you once dreamed of.", "Your creativity deserves space.", "You are talented, beautiful and capable.", "Keep going. Your dreams are worth it."];
+export const prompts = ["What is on your heart today?", "What are you dreaming about lately?", "What made you smile today?", "What creative idea keeps returning to you?"];
