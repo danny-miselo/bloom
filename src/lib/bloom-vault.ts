@@ -1,7 +1,7 @@
 import { dataSchema, type BloomData } from "./bloom-types";
 import { z } from "zod";
 
-const envelopeSchema = z.object({ version: z.literal(1), salt: z.array(z.number().int().min(0).max(255)).length(16), iv: z.array(z.number().int().min(0).max(255)).length(12), ciphertext: z.array(z.number().int().min(0).max(255)) });
+export const envelopeSchema = z.object({ version: z.literal(1), salt: z.array(z.number().int().min(0).max(255)).length(16), iv: z.array(z.number().int().min(0).max(255)).length(12), ciphertext: z.array(z.number().int().min(0).max(255)) });
 export type Envelope = z.infer<typeof envelopeSchema>;
 const database = () => new Promise<IDBDatabase>((resolve, reject) => {
   const request = indexedDB.open("bloom-private-vault", 1);
